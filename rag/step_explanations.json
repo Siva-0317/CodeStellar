@@ -1,0 +1,6 @@
+{
+    "Kriging": "Tool: d8_flow_accumulation\nDescription: Calculates the flow accumulation using the D8 algorithm. Input must be a filled DEM.\n\nTool: extract_streams\nDescription: Extracts stream network using a flow accumulation threshold.",
+    "QGIS": "Tool: d8_flow_accumulation\nDescription: Calculates the flow accumulation using the D8 algorithm. Input must be a filled DEM.\n\nTool: extract_streams\nDescription: Extracts stream network using a flow accumulation threshold.",
+    "SmoothDEM": "Tool: d8_flow_accumulation\nDescription: Calculates the flow accumulation using the D8 algorithm. Input must be a filled DEM.\n\nTool: extract_streams\nDescription: Extracts stream network using a flow accumulation threshold.",
+    "WhiteboxTools": "Tool: clip_raster_to_polygon\nDescription: Clips a raster using a polygon boundary shapefile or GeoJSON."
+}
