@@ -1,0 +1,8 @@
+Tool: d8_flow_accumulation
+Description: Calculates the flow accumulation using the D8 algorithm. Input must be a filled DEM.
+
+Tool: extract_streams
+Description: Extracts stream network using a flow accumulation threshold.
+
+Tool: clip_raster_to_polygon
+Description: Clips a raster using a polygon boundary shapefile or GeoJSON.
