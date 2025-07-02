@@ -1,0 +1,2 @@
+Tool: Vector Intersection
+Description: Finds the overlapping area between two vector layers. Useful for intersecting flood zones with land parcels or roads.

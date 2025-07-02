@@ -1,0 +1,2 @@
+Tool: Raster Reclassification
+Description: Assigns new values to raster cells based on defined rules or thresholds. Used for risk zoning, suitability analysis, and thematic mapping.

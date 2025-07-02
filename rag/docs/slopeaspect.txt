@@ -1,0 +1,2 @@
+Tool: Slope and Aspect
+Description: Calculates the rate of elevation change (slope) and the compass direction (aspect) from a DEM. These are key parameters for hydrology and terrain analysis.

@@ -1,0 +1,2 @@
+Tool: Buffer Zones
+Description: Creates buffer areas around features like roads or rivers. Often used in site suitability and hazard proximity analysis.

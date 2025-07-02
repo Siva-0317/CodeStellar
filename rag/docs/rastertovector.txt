@@ -1,0 +1,2 @@
+Tool: Raster to Vector Conversion
+Description: Converts classified raster data into vector features (e.g., flood zones as polygons). Enables overlay analysis with population/infrastructure layers.

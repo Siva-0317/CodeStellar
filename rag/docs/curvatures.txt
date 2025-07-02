@@ -1,0 +1,2 @@
+Tool: Curvature
+Description: Calculates plan and profile curvature from a DEM. Useful in terrain morphology, erosion modeling, and flow routing.

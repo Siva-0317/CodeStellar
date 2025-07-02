@@ -1,0 +1,2 @@
+Tool: Hillshade
+Description: Generates a shaded relief raster from a DEM based on a simulated light source. It helps visualize terrain features.

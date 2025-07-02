@@ -1,0 +1,2 @@
+Tool: Stream Extraction
+Description: Identifies stream networks from flow accumulation rasters by applying a threshold. Often used after flow direction and accumulation models.
