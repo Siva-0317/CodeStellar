@@ -1,0 +1,2 @@
+I want to assess flood-prone areas in Assam using SRTM elevation and rainfall data from IMD.
+Generate a Chain-of-Thought reasoning and output a JSON workflow using GDAL, WhiteboxTools, and QGIS APIs.

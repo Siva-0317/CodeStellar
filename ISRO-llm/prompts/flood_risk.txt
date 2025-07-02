@@ -1,0 +1,2 @@
+I want to assess flood risk in Kerala using elevation and rainfall data.
+Generate a Chain-of-Thought reasoning and output a JSON workflow using GDAL, WhiteboxTools, or QGIS APIs.

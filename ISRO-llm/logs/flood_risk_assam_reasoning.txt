@@ -1,0 +1,15 @@
+To assess flood-prone areas in Assam using SRTM elevation and rainfall data from IMD (India Meteorological
+Department), follow this Chain-of-Thought reasoning:
+
+1. Download the SRTM elevation DEM and rainfall data for Assam from the IMD website.
+2. Preprocess the SRTM DEM data using WhiteboxTools to remove noise, inconsistencies, and to create hydrologic
+parameters such as slope, aspect, flow direction, flow accumulation, hillshade, curvature, and Topographic Wetness
+Index (TWI).
+3. Interpolate rainfall data using spatial interpolation techniques like Kriging or Inverse Distance Weighted
+(IDW) to create a rainfall raster map for Assam.
+4. Calculate the probability of a landslide occurrence using the Frequency Ratio (FR) method, taking into account
+the combined effects of slope, TWI, and rainfall intensity. The FR method will involve creating different classes
+for slope, TWI, and rainfall depth, and calculating the frequency of each class in historical flood events.
+5. Overlay the landslide probability raster map with infrastructure and population data to identify areas with
+high flood risk.
+6. Visualize the results using QGIS or create reports to present the findings to decision-makers and stakeholders.
