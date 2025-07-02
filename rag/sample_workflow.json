@@ -1,0 +1,7 @@
+{
+  "steps": [
+    { "tool": "d8_flow_accumulation", "input": "dem_kerala.tif" },
+    { "tool": "extract_streams", "threshold": 1000 },
+    { "tool": "clip_raster_to_polygon", "mask": "kerala.geojson" }
+  ]
+}
