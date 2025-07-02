@@ -1,0 +1,2 @@
+Tool: Rainfall Interpolation
+Description: Converts point-based rainfall data into a continuous surface using methods like Kriging or IDW.

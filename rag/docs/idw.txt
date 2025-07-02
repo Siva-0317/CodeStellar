@@ -1,0 +1,2 @@
+Tool: Inverse Distance Weighting (IDW)
+Description: IDW is a spatial interpolation method that estimates unknown values using the weighted average of nearby known points. Weights decrease with distance.

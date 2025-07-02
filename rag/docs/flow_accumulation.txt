@@ -1,0 +1,2 @@
+Tool: Flow Accumulation
+Description: Calculates how much surface runoff flows into each cell in a DEM. Essential for stream network extraction and flood simulation.

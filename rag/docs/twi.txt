@@ -1,0 +1,2 @@
+Tool: Topographic Wetness Index (TWI)
+Description: TWI quantifies the tendency of water to accumulate in terrain depressions. It's calculated using slope and upstream contributing area. TWI is used in flood modeling and soil moisture prediction.

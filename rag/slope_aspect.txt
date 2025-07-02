@@ -1,0 +1,2 @@
+Tool: Slope and Aspect
+Description: Calculates the steepness and direction of terrain using a DEM. Useful for landslide and flood risk analysis.
