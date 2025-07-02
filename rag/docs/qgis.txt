@@ -1,0 +1,2 @@
+Tool: QGIS
+Description: QGIS is an open-source GIS application that allows users to visualize, edit, and analyze geospatial data. It supports plugins for hydrological modeling, terrain analysis, and map generation.

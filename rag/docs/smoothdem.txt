@@ -1,0 +1,2 @@
+Tool: SmoothDEM
+Description: SmoothDEM in WhiteboxTools smooths a Digital Elevation Model using neighborhood-based averaging or Gaussian filtering to reduce noise.
