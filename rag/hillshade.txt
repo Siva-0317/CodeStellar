@@ -1,2 +1,0 @@
-Tool: Hillshade
-Description: Creates a shaded relief image of terrain elevation, simulating shadows for 3D-like visualization.
