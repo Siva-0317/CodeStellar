@@ -1,0 +1,2 @@
+Tool: FillDepressions
+Description: Fills sinks or pits in a Digital Elevation Model (DEM) to create hydrologically correct surfaces for flow direction and accumulation models.

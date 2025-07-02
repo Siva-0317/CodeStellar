@@ -1,0 +1,2 @@
+Tool: Merge/Mosaic Rasters
+Description: Combines multiple adjacent raster tiles into a single raster. Used for creating a continuous DEM or land use layer from multiple scenes.

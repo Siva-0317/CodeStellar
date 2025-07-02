@@ -1,0 +1,2 @@
+Tool: Raster Calculator (QGIS/GDAL)
+Description: Performs map algebra on raster datasets to combine or reclassify values using expressions. Useful for thresholding or combining layers.

@@ -1,0 +1,2 @@
+Tool: IDW (QGIS Plugin)
+Description: Implements Inverse Distance Weighting interpolation in QGIS for generating surfaces like rainfall or temperature from point data.

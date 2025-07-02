@@ -1,0 +1,2 @@
+Tool: Reproject Raster
+Description: Transforms a raster layer from one coordinate reference system (CRS) to another. Critical for ensuring spatial alignment across datasets.

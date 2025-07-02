@@ -1,0 +1,2 @@
+Tool: TWI (QGIS Plugin)
+Description: Calculates the Topographic Wetness Index in QGIS using slope and contributing area from a DEM. Helps identify wet zones and flood risk.

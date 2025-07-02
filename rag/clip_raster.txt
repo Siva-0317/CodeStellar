@@ -1,2 +1,0 @@
-Tool: Clip Raster
-Description: Crops a raster dataset to a defined polygon boundary (e.g., administrative zone or floodplain).

@@ -1,0 +1,2 @@
+Tool: D8 Flow Accumulation
+Description: Calculates the accumulated flow into each cell using the D8 flow direction algorithm. Identifies major flow paths and stream networks.

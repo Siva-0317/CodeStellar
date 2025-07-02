@@ -1,0 +1,2 @@
+Tool: GDAL
+Description: GDAL (Geospatial Data Abstraction Library) is a translator library for raster and vector geospatial data formats. It provides tools for raster reprojection, warping, mosaicking, clipping, and format conversion.

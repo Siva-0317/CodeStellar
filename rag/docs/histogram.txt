@@ -1,0 +1,2 @@
+Tool: Raster Histogram
+Description: Generates frequency distribution of raster cell values. Useful for threshold selection and land use classification validation.

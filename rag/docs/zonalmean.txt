@@ -1,0 +1,2 @@
+Tool: Zonal Mean
+Description: Calculates the average value of a raster within zones defined by a vector layer. Often used for district-wise rainfall or elevation summaries.

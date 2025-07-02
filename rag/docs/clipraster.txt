@@ -1,0 +1,2 @@
+Tool: Clip Raster by Polygon
+Description: Clips a raster layer using the boundaries of a polygon shapefile or GeoJSON. Only retains raster pixels inside the boundary.

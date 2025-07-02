@@ -1,0 +1,2 @@
+Tool: Zonal Statistics
+Description: Calculates statistics (mean, sum, max, etc.) of a raster layer within each zone of a vector layer. Useful for summarizing elevation, rainfall, or other continuous variables by administrative areas.
