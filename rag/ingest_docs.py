@@ -1,11 +1,8 @@
-# rag/ingest_docs.py
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 import os
-# ...existing code...
 
 def ingest_docs():
     docs_dir = os.path.join(os.path.dirname(__file__), "docs")
@@ -20,7 +17,9 @@ def ingest_docs():
     splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=30)
     chunks = splitter.split_documents(all_docs)
 
-    vectordb = Chroma.from_documents(chunks, embedding=OpenAIEmbeddings(), persist_directory="rag_db")
+    # Use HuggingFace model like "all-MiniLM-L6-v2"
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    vectordb = Chroma.from_documents(chunks, embedding=embeddings, persist_directory="rag_db")
     vectordb.persist()
 
 if __name__ == "__main__":
