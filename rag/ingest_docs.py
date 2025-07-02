@@ -3,11 +3,13 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
 import os
 # ...existing code...
 
 def ingest_docs():
-    all_files = ["docs/" + f for f in os.listdir("docs") if f.endswith(".txt")]
+    docs_dir = os.path.join(os.path.dirname(__file__), "docs")
+    all_files = [os.path.join(docs_dir, f) for f in os.listdir(docs_dir) if f.endswith(".txt")]
     all_docs = []
 
     for path in all_files:
