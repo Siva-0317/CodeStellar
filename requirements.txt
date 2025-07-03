@@ -8,3 +8,9 @@ sentence-transformers
 rasterio
 geopandas
 matplotlib
+fiona
+shapely
+pyproj
+seaborn
+streamlit
+faiss-cpu
