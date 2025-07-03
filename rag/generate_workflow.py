@@ -3,7 +3,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import json
 
-model_name = "mistralai/Mistral-7B-Instruct-v0.1"
+model_name = "mistralai/Mistral-7B-Instruct-v0.3"
 
 print("Loading model... This may take a few minutes on first run.")
 
