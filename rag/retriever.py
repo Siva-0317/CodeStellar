@@ -1,8 +1,11 @@
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 
-def query_docs(query):
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    db = Chroma(persist_directory="rag_db", embedding_function=embeddings)
-    results = db.similarity_search(query, k=2)
-    return [r.page_content for r in results]
+def load_vectorstore():
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    db = FAISS.load_local("rag/rag_db", embeddings)
+    return db
+
+def retrieve_explanation(query: str, k=3):
+    db = load_vectorstore()
+    return db.similarity_search(query, k)
