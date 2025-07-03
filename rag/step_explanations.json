@@ -1,6 +1,0 @@
-{
-    "SmoothDEM": "Tool: SmoothDEM\nDescription: SmoothDEM in WhiteboxTools smooths a Digital Elevation Model using neighborhood-based averaging or Gaussian filtering to reduce noise.",
-    "WhiteboxTools": "Tool: SmoothDEM\nDescription: SmoothDEM in WhiteboxTools smooths a Digital Elevation Model using neighborhood-based averaging or Gaussian filtering to reduce noise.",
-    "QGIS": "Tool: QGIS\nDescription: QGIS is an open-source GIS application that allows users to visualize, edit, and analyze geospatial data. It supports plugins for hydrological modeling, terrain analysis, and map generation.",
-    "Kriging": "Tool: Kriging\nDescription: Kriging is a geostatistical interpolation technique used to estimate unknown values from data observed at known locations. Commonly used in rainfall and environmental modeling."
-}
