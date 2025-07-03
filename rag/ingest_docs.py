@@ -1,26 +1,20 @@
-from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.document_loaders import TextLoader
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import FAISS
+from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 import os
 
-def ingest_docs():
-    docs_dir = os.path.join(os.path.dirname(__file__), "docs")
-    all_files = [os.path.join(docs_dir, f) for f in os.listdir(docs_dir) if f.endswith(".txt")]
-    all_docs = []
+docs_path = "rag/docs"
+texts = []
 
-    for path in all_files:
-        loader = TextLoader(path)
-        docs = loader.load()
-        all_docs.extend(docs)
+for file in os.listdir(docs_path):
+    if file.endswith(".txt"):
+        loader = TextLoader(os.path.join(docs_path, file))
+        texts.extend(loader.load())
 
-    splitter = CharacterTextSplitter(chunk_size=300, chunk_overlap=30)
-    chunks = splitter.split_documents(all_docs)
+text_splitter = CharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+docs = text_splitter.split_documents(texts)
 
-    # Use HuggingFace model like "all-MiniLM-L6-v2"
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vectordb = Chroma.from_documents(chunks, embedding=embeddings, persist_directory="rag_db")
-    vectordb.persist()
-
-if __name__ == "__main__":
-    ingest_docs()
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+db = FAISS.from_documents(docs, embeddings)
+db.save_local("rag/rag_db")
