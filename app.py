@@ -4,6 +4,7 @@ import subprocess
 import json
 import shutil
 from datetime import datetime
+import sys
 
 # Set folders
 UPLOAD_FOLDER = "rag/uploads"
@@ -65,7 +66,7 @@ if tif_file:
     with open("rag/workflows/sample_workflow.json") as f:
         workflow = json.load(f)
     for step in workflow.get("workflow", []):
-        if "input_file" in step["args"]:
+        if "args" in step and "input_file" in step["args"]:
             step["args"]["input_file"] = uploaded_path
     with open("rag/workflows/sample_workflow.json", "w") as f:
         json.dump(workflow, f, indent=2)
@@ -74,7 +75,7 @@ if tif_file:
     # 4. Execute workflow
     if st.button("Run GIS Workflow"):
         with st.spinner("Running workflow_executor.py..."):
-            result = subprocess.run(["python", "workflow_executor.py"], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, "workflow_executor.py"], capture_output=True, text=True)
             if result.returncode == 0:
                 st.success("✅ Workflow executed successfully!")
                 st.text(result.stdout)
