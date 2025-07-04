@@ -1,3 +1,5 @@
+# ✅ Updated app.py for Flood-Prone Zone Workflow
+
 import streamlit as st
 import os
 import subprocess
@@ -5,27 +7,28 @@ import json
 import shutil
 from datetime import datetime
 import sys
+from PIL import Image
 
 # Set folders
 UPLOAD_FOLDER = "rag/uploads"
-OUTPUT_FOLDER = "rag/outputs"
+OUTPUT_FOLDER = "rag"
 
 # Ensure required folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 # UI Setup
-st.set_page_config(page_title="GeoAI CoT GIS System", layout="wide")
-st.title("🧠📍 Chain-of-Thought GIS Workflow Assistant")
+st.set_page_config(page_title="Flood Risk Zone GIS Assistant", layout="wide")
+st.title("🌊 Flood-Prone Zone Identification using DEM")
 
 # 1. Prompt input
-st.header("Step 1: Enter your geospatial analysis prompt")
+st.header("Step 1: Enter your geospatial task prompt")
 prompt = st.text_area("Describe your GIS task:", placeholder="e.g., Find flood-prone zones in Chennai using a DEM")
 
-if st.button("Generate Workflow JSON using Mistral"):
-    with st.spinner("Generating workflow using Mistral LLM..."):
+if st.button("Generate Flood Workflow JSON using LLM"):
+    with st.spinner("Generating workflow using LLM..."):
         result = subprocess.run([
-            "python", "rag/generate_workflow.py", prompt
+            sys.executable, "rag/generate_workflow.py", prompt
         ], capture_output=True, text=True)
 
         if result.returncode == 0:
@@ -37,23 +40,9 @@ if st.button("Generate Workflow JSON using Mistral"):
             st.error("❌ Failed to generate workflow.")
             st.text(result.stderr)
 
-# 2. Run explanation script
-if os.path.exists("rag/sample_workflow.json"):
-    if st.button("Explain Workflow Steps"):
-        with st.spinner("Explaining workflow steps..."):
-            result = subprocess.run(["python", "rag/explain_workflow.py"], capture_output=True, text=True)
-            if result.returncode == 0:
-                st.success("✅ step_explanations.json generated.")
-                with open("rag/workflows/step_explanations.json") as f:
-                    explanation = json.load(f)
-                st.json(explanation)
-            else:
-                st.error("❌ Failed to explain steps.")
-                st.text(result.stderr)
-
-# 3. Upload TIF file
-st.header("Step 3: Upload your GeoTIFF (.tif) file")
-tif_file = st.file_uploader("Upload a DEM or other raster file", type=["tif"])
+# 2. Upload TIF file
+st.header("Step 2: Upload your DEM (.tif) file")
+tif_file = st.file_uploader("Upload a DEM GeoTIFF file", type=["tif"])
 
 if tif_file:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -72,20 +61,27 @@ if tif_file:
         json.dump(workflow, f, indent=2)
     st.info("🔁 Updated workflow to use uploaded file.")
 
-    # 4. Execute workflow
-    if st.button("Run GIS Workflow"):
+    # 3. Execute workflow
+    if st.button("Run Flood Analysis Workflow"):
         with st.spinner("Running workflow_executor.py..."):
-            result = subprocess.run([sys.executable, "workflow_executor.py"], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, "rag/workflow_executor.py"], capture_output=True, text=True)
             if result.returncode == 0:
                 st.success("✅ Workflow executed successfully!")
                 st.text(result.stdout)
 
-                # Show output files
-                st.header("📊 Output Rasters")
-                for file in os.listdir(OUTPUT_FOLDER):
+                # Display output raster and map
+                st.header("🗺️ Flood Risk Map")
+                image_path = os.path.join("rag", "flood_risk_map.png")
+                if os.path.exists(image_path):
+                    st.image(image_path, caption="Flood Risk Zones", use_column_width=True)
+                else:
+                    st.warning("⚠️ No flood risk map image generated.")
+
+                # List output rasters
+                st.header("📊 Output Raster Files")
+                for file in os.listdir("rag"):
                     if file.endswith(".tif"):
                         st.markdown(f"**{file}**")
-                        st.image(os.path.join(OUTPUT_FOLDER, file), caption=file)
             else:
                 st.error("❌ Workflow execution failed.")
                 st.text(result.stderr)
