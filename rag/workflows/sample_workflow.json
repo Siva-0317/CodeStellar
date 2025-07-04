@@ -1,79 +1,34 @@
 {
   "workflow": [
     {
-      "task": "data_acquisition",
-      "action": "download_SRTM_DEM_and_IMD_rainfall_data"
-    },
-    {
       "task": "preprocessing",
-      "action": "remove_noise_from_SRTM_DEM_using_WhiteboxTools",
+      "action": "Fill sinks in DEM",
       "args": {
-        "tool": "SmoothDEM",
-        "input_raster": "{SRTM_DEM_path}",
-        "output_raster": "{preprocessed_SRTM_DEM_path}"
+        "tool": "whiteboxtools",
+        "function": "fill_depressions_wang_and_liu",
+        "input": "uploads/chennai_dem.tif",
+        "output": "outputs/filled_dem.tif"
       }
     },
     {
-      "task": "hydrologic_parameters",
-      "action": "calculate_slope_and_aspect_using_WhiteboxTools",
+      "task": "hydrology",
+      "action": "Calculate flow accumulation",
       "args": {
-        "input_raster": "{preprocessed_SRTM_DEM_path}",
-        "output_raster": "{slope_and_aspect_path}"
+        "tool": "whiteboxtools",
+        "function": "flow_accumulation",
+        "input": "outputs/filled_dem.tif",
+        "output": "outputs/flow_accum.tif"
       }
     },
     {
-      "task": "hydrologic_parameters",
-      "action": "calculate_flow_direction_and_accumulation_using_WhiteboxTools",
+      "task": "analysis",
+      "action": "Extract flood-prone zones",
       "args": {
-        "input_raster": "{preprocessed_SRTM_DEM_path}",
-        "output_raster": "{flow_direction_and_accumulation_path}"
-      }
-    },
-    {
-      "task": "hydrologic_parameters",
-      "action": "calculate_hillshade_curvature_and_TWI_using_WhiteboxTools or QGIS",
-      "args": {
-        "input_raster": "{flow_direction_and_accumulation_path}",
-        "output_raster": "{hillshade_curvature_TWI_path}"
-      }
-    },
-    {
-      "task": "interpolation",
-      "action": "spatial_interpolation_of_IMD_rainfall_data_using_Kriging or IDW",
-      "args": {
-        "input_points": "{rainfall_data}",
-        "output_raster": "{interpolated_rainfall_path}"
-      }
-    },
-    {
-      "task": "landslide_probability",
-      "action": "calculate_FR_method_using_combined_effects_of_slope_TWI_and_rainfall",
-      "args": {
-        "input_rasters": "{hillshade_curvature_TWI_path}, {interpolated_rainfall_path}",
-        "output_raster": "{landslide_probability_map_path}"
-      }
-    },
-    {
-      "task": "overlays",
-      "action": "overlay_landslide_probability_map_with_infrastructure_and_population_data",
-      "args": {
-        "input_raster1": "{landslide_probability_map_path}",
-        "input_raster2": "{infrastructure_and_population_data}",
-        "output_raster": "{high_flood_risk_areas_map_path}"
-      }
-    },
-    {
-      "task": "visualization",
-      "action": "visualize_results_using_QGIS",
-      "args": {
-        "input_rasters": "{high_flood_risk_areas_map_path}"
-      }
-    },
-    {
-      "task": "report",
-      "action": "generate_reports_to_present_findings",
-      "args": {
-        "input_rasters": "{high_flood_risk_areas_map_path}"
+        "tool": "qgis",
+        "function": "raster_threshold",
+        "input": "outputs/flow_accum.tif",
+        "output": "outputs/flood_zones.tif",
+        "threshold": 1000
       }
     }
   ]
