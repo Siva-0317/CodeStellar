@@ -1,6 +1,8 @@
+# rag/generate_workflow.py
 import json
 import os
 import regex as re
+import sys
 from llama_cpp import Llama
 
 model_path = "D:/AI/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
@@ -16,7 +18,7 @@ def get_workflow_from_prompt(prompt: str):
 
     system_prompt = """
 You are a GIS workflow generator. Given a user task, generate a concrete JSON workflow using the following schema. 
-Return ONLY the JSON object, filled with realistic values for the user's task. Do NOT return a template or placeholders.
+Return ONLY the JSON object.
 
 Schema:
 {
@@ -25,27 +27,24 @@ Schema:
       "task": string,
       "action": string,
       "args": {
-        "tool": one of [whiteboxtools, qgis, gdal, geopandas, rasterio],
-        "function": valid function name,
-        "input": string path,
-        "output": string path,
-        ...optional parameters...
+        "tool": one of [whiteboxtools, qgis, gdal, rasterio],
+        "input_file": string,
+        "output_file": string
       }
     }
   ]
 }
 
-Example for "Show me flood-prone zones in Chennai using DEM data":
+Example: Generate flood prone zones from DEM:
 {
   "workflow": [
     {
-      "task": "preprocessing",
-      "action": "Fill sinks in DEM",
+      "task": "hydrology",
+      "action": "Fill depressions",
       "args": {
         "tool": "whiteboxtools",
-        "function": "fill_depressions_wang_and_liu",
-        "input": "uploads/chennai_dem.tif",
-        "output": "outputs/filled_dem.tif"
+        "input_file": "uploads/input.tif",
+        "output_file": "filled_dem.tif"
       }
     },
     {
@@ -53,58 +52,49 @@ Example for "Show me flood-prone zones in Chennai using DEM data":
       "action": "Calculate flow accumulation",
       "args": {
         "tool": "whiteboxtools",
-        "function": "flow_accumulation",
-        "input": "outputs/filled_dem.tif",
-        "output": "outputs/flow_accum.tif"
+        "input_file": "filled_dem.tif",
+        "output_file": "flow_accum.tif"
       }
     },
     {
-      "task": "analysis",
-      "action": "Extract flood-prone zones",
+      "task": "risk_analysis",
+      "action": "Classify flood risk",
       "args": {
-        "tool": "qgis",
-        "function": "raster_threshold",
-        "input": "outputs/flow_accum.tif",
-        "output": "outputs/flood_zones.tif",
-        "threshold": 1000
+        "tool": "rasterio",
+        "input_file": "flow_accum.tif",
+        "output_file": "flood_risk_levels.tif"
       }
     }
   ]
 }
 """
+
     prompt_input = f"[INST] {system_prompt.strip()} Task: {prompt.strip()} [/INST]"
     resp = llm.create_completion(
         prompt=prompt_input,
         max_tokens=1024,
         temperature=0.7,
-        stop=["</s>", "[/INST]"]
+        stop=["</s>", "[INST]"]
     )
     text = resp["choices"][0]["text"]
-    print("=== Model Output ===")
-    print(text)
 
-    # Extract the first JSON object using regex
     json_blocks = re.findall(r"\{(?:[^{}]|(?R))*\}", text, re.DOTALL)
     snippet = json_blocks[0] if json_blocks else ""
 
-    print("=== Extracted JSON ===")
-    print(snippet)
-
     if not snippet.strip():
-        raise ValueError("No JSON object found in model output.")
+        raise ValueError("No JSON object found.")
 
-    try:
-        data = json.loads(snippet)
-    except json.JSONDecodeError as e:
-        print("❌ Failed to parse JSON. The model output may be truncated or malformed.")
-        raise e
-
+    data = json.loads(snippet)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"✅ Workflow saved to {output_path}")
+    print("✅ Workflow saved.")
 
+# 🟨 Use sys.argv for prompt (for Streamlit compatibility)
 if __name__ == "__main__":
-    user_prompt = input("📝 Enter your geospatial task prompt: ")
-    get_workflow_from_prompt(user_prompt)
+    if len(sys.argv) > 1:
+        prompt_text = " ".join(sys.argv[1:])
+        get_workflow_from_prompt(prompt_text)
+    else:
+        print("❌ Please provide prompt as command-line argument.")
