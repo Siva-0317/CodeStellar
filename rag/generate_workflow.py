@@ -1,59 +1,110 @@
-# rag/generate_workflow.py
-
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import json
-import torch
+import os
+import regex as re
+from llama_cpp import Llama
 
-model_name = "mistralai/Mistral-7B-Instruct-v0.3"
-
-print("Loading model... This may take a few minutes on first run.")
-
-try:
-    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-except Exception as e:
-    print("❌ Tokenizer failed to load. Make sure sentencepiece and tokenizers are installed.")
-    print(e)
-    exit()
-
-try:
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        device_map="auto"
-    )
-except Exception as e:
-    print("❌ Model failed to load.")
-    print(e)
-    exit()
-generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+model_path = "D:/AI/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
+output_path = "rag/workflows/sample_workflow.json"
 
 def get_workflow_from_prompt(prompt: str):
-    system_prompt = (
-        "You are a GIS assistant. Given a geospatial analysis task, output a valid JSON workflow. "
-        "Each step must have an 'action' and an 'args' dict that includes a 'tool'. "
-        "Supported tools: 'whiteboxtools', 'qgis', 'gdal', 'geopandas', 'rasterio'. "
-        "Example actions: 'Fill sinks in DEM', 'Calculate flow accumulation', 'Overlay flood map', 'Visualize raster'."
+    llm = Llama(
+        model_path=model_path,
+        n_ctx=2048,
+        n_threads=4,
+        seed=1337
     )
-    full_prompt = f"<s>[INST] {system_prompt} Task: {prompt} [/INST]"
 
-    output = generator(full_prompt, max_new_tokens=512, temperature=0.7)[0]["generated_text"]
+    system_prompt = """
+You are a GIS workflow generator. Given a user task, generate a concrete JSON workflow using the following schema. 
+Return ONLY the JSON object, filled with realistic values for the user's task. Do NOT return a template or placeholders.
 
-    # Extract only the JSON part
-    json_start = output.find("{")
-    json_end = output.rfind("}") + 1
+Schema:
+{
+  "workflow": [
+    {
+      "task": string,
+      "action": string,
+      "args": {
+        "tool": one of [whiteboxtools, qgis, gdal, geopandas, rasterio],
+        "function": valid function name,
+        "input": string path,
+        "output": string path,
+        ...optional parameters...
+      }
+    }
+  ]
+}
+
+Example for "Show me flood-prone zones in Chennai using DEM data":
+{
+  "workflow": [
+    {
+      "task": "preprocessing",
+      "action": "Fill sinks in DEM",
+      "args": {
+        "tool": "whiteboxtools",
+        "function": "fill_depressions_wang_and_liu",
+        "input": "uploads/chennai_dem.tif",
+        "output": "outputs/filled_dem.tif"
+      }
+    },
+    {
+      "task": "hydrology",
+      "action": "Calculate flow accumulation",
+      "args": {
+        "tool": "whiteboxtools",
+        "function": "flow_accumulation",
+        "input": "outputs/filled_dem.tif",
+        "output": "outputs/flow_accum.tif"
+      }
+    },
+    {
+      "task": "analysis",
+      "action": "Extract flood-prone zones",
+      "args": {
+        "tool": "qgis",
+        "function": "raster_threshold",
+        "input": "outputs/flow_accum.tif",
+        "output": "outputs/flood_zones.tif",
+        "threshold": 1000
+      }
+    }
+  ]
+}
+"""
+    prompt_input = f"[INST] {system_prompt.strip()} Task: {prompt.strip()} [/INST]"
+    resp = llm.create_completion(
+        prompt=prompt_input,
+        max_tokens=1024,
+        temperature=0.7,
+        stop=["</s>", "[/INST]"]
+    )
+    text = resp["choices"][0]["text"]
+    print("=== Model Output ===")
+    print(text)
+
+    # Extract the first JSON object using regex
+    json_blocks = re.findall(r"\{(?:[^{}]|(?R))*\}", text, re.DOTALL)
+    snippet = json_blocks[0] if json_blocks else ""
+
+    print("=== Extracted JSON ===")
+    print(snippet)
+
+    if not snippet.strip():
+        raise ValueError("No JSON object found in model output.")
+
     try:
-        json_data = json.loads(output[json_start:json_end])
-    except Exception as e:
-        print("⚠️ Could not parse JSON from output.")
-        print("Raw output:\n", output)
-        return
+        data = json.loads(snippet)
+    except json.JSONDecodeError as e:
+        print("❌ Failed to parse JSON. The model output may be truncated or malformed.")
+        raise e
 
-    with open("rag/workflows/sample_workflow.json", "w") as f:
-        json.dump(json_data, f, indent=2)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent=2)
 
-    print("✅ Workflow saved to rag/workflows/sample_workflow.json")
+    print(f"✅ Workflow saved to {output_path}")
 
-# Example usage
 if __name__ == "__main__":
-    user_prompt = input("Enter your geospatial task prompt: ")
+    user_prompt = input("📝 Enter your geospatial task prompt: ")
     get_workflow_from_prompt(user_prompt)
