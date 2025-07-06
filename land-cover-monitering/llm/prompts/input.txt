@@ -1,0 +1,1 @@
+Generate NDVI and classify land cover types using Sentinel-2 data.

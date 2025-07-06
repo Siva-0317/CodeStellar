@@ -1,0 +1,17 @@
+{
+    "steps": [
+        {
+            "tool": "CalculateNDVI",
+            "input": {
+                "red": "data/raw/sentinel_chennai/B04.jp2",
+                "nir": "data/raw/sentinel_chennai/B08.jp2"
+            },
+            "output": "data/processed/ndvi.tif"
+        },
+        {
+            "tool": "ClassifyLandCover",
+            "input": "data/processed/ndvi.tif",
+            "output": "data/processed/land_cover_classified.tif"
+        }
+    ]
+}

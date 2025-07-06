@@ -1,0 +1,18 @@
+# Task: Land Cover Monitoring using Satellite Imagery
+
+## Objective:
+Determine land cover types (e.g., forest, urban, water, barren) using NDVI from Sentinel-2 imagery.
+
+## Chain of Thought:
+1. Identify required bands for NDVI — Red (B04) and NIR (B08).
+2. Compute NDVI using formula: (B08 - B04) / (B08 + B04).
+3. Apply NDVI thresholds to classify land cover:
+   - NDVI < 0.1: Water
+   - 0.1 ≤ NDVI < 0.2: Barren
+   - 0.2 ≤ NDVI < 0.5: Urban
+   - NDVI ≥ 0.5: Forest
+4. Save classified map as GeoTIFF.
+5. Visualize using class colors and generate pixel statistics.
+
+## Output:
+Return a JSON workflow and a reasoning log.
