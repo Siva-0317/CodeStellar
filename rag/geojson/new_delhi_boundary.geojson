@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "new_delhi_boundary",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "bbox_west": 77.2189812, "bbox_south": 28.6421417, "bbox_east": 77.2196548, "bbox_north": 28.643836, "place_id": 226589616, "osm_type": "way", "osm_id": 80414558, "lat": 28.6430858, "lon": 77.2192671, "class": "railway", "type": "station", "place_rank": 30, "importance": 0.45936793322640973, "addresstype": "railway", "name": "New Delhi", "display_name": "New Delhi, Foot Over Bridge 1, Ram Nagar, New Delhi Railway Station, Delhi, Kotwali Tehsil, Central Delhi, Delhi, 110006, India" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 77.2189812, 28.6434897 ], [ 77.2191594, 28.642665 ], [ 77.2192566, 28.642682 ], [ 77.2193765, 28.6421417 ], [ 77.2195815, 28.6421781 ], [ 77.2196003, 28.6421815 ], [ 77.2196548, 28.6421915 ], [ 77.219307, 28.643836 ], [ 77.2192348, 28.6438195 ], [ 77.2192016, 28.6438119 ], [ 77.2190829, 28.6437847 ], [ 77.2190363, 28.643774 ], [ 77.2190809, 28.6435489 ], [ 77.2190881, 28.6435124 ], [ 77.219032, 28.6435005 ], [ 77.2189812, 28.6434897 ] ] ] } }
+]
+}

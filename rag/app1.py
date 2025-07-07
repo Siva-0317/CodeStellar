@@ -30,7 +30,7 @@ default_prompt = (
 )
 prompt = st.text_area("Enter task prompt:", placeholder=f"e.g., {default_prompt}")
 
-workflow_script = "rag/gen_workflownew.py"
+workflow_script = "rag/openr_gen.py"
 executor_script = "rag/workflow_executor.py" if mode == "Flood-Prone Zone Identification" else "rag/workflow_exe2.py"
 
 if st.button("Generate Workflow JSON using LLM"):
@@ -95,7 +95,7 @@ if tif_file:
                 # Output Map Image
                 st.header("🗺️ Output Map")
                 map_img = (
-                    os.path.join("rag", "flood_risk_map.png")
+                    os.path.join("rag","outputs" ,"flood_risk_map.png")
                     if mode == "Flood-Prone Zone Identification"
                     else os.path.join("rag", "outputs", "site_suitability_map.png")
                 )

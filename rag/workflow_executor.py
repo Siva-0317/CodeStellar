@@ -2,7 +2,6 @@ import json
 import rasterio
 import numpy as np
 import os
-from rasterio.enums import Resampling
 from rasterio.plot import show
 from whitebox.whitebox_tools import WhiteboxTools
 import matplotlib.pyplot as plt
@@ -43,7 +42,6 @@ def run_workflow(json_path):
 
     print(f"\n📍 Region: {location}")
 
-    # Download boundary and clip DEM
     print("📥 Downloading boundary...")
     boundary_gdf, geojson_path = download_boundary(location)
     print(f"✅ Saved boundary: {geojson_path}")
@@ -89,35 +87,34 @@ def run_workflow(json_path):
                 flow = src.read(1)
                 meta = src.meta.copy()
 
-            # Calculate thresholds
-            LOW, MEDIUM, HIGH = np.percentile(flow[flow > 0], [70, 85, 95])
+            # Thresholds
+            valid = flow > 0
+            LOW, MEDIUM, HIGH = np.percentile(flow[valid], [70, 85, 95])
 
-            # Set all as NoData initially
-            risk = np.full_like(flow, 255, dtype=np.uint8)
+            # Initialize risk map: 0 = Sea/Water (default), then 1–4
+            risk = np.full_like(flow, 0, dtype=np.uint8)
+            risk[(flow > 0) & (flow <= LOW)] = 1  # Safe
+            risk[(flow > LOW) & (flow <= MEDIUM)] = 2  # Low
+            risk[(flow > MEDIUM) & (flow <= HIGH)] = 3  # Medium
+            risk[flow > HIGH] = 4  # High
 
-            # Classify only valid data
-            risk[(flow > 0) & (flow <= LOW)] = 0  # Safe
-            risk[(flow > LOW) & (flow <= MEDIUM)] = 1  # Low
-            risk[(flow > MEDIUM) & (flow <= HIGH)] = 2  # Medium
-            risk[flow > HIGH] = 3  # High
-
-            meta.update(dtype=rasterio.uint8, count=1, nodata=255)
+            # Save classified raster
+            meta.update(dtype=rasterio.uint8, count=1, nodata=0)
             with rasterio.open(output_path, "w", **meta) as dst:
                 dst.write(risk, 1)
 
-            # Save visual
-            cmap = ListedColormap(["lightgray", "yellow", "orange", "red"])
-            labels = ["Safe", "Low", "Medium", "High"]
+            # Visualization with sea (0) as light blue
+            cmap = ListedColormap(["lightblue", "lightgray", "yellow", "orange", "red"])
+            labels = ["Water/Sea", "Safe", "Low", "Medium", "High"]
 
             plt.figure(figsize=(8, 5))
-            masked_risk = np.ma.masked_where(risk == 255, risk)
-            im = plt.imshow(masked_risk, cmap=cmap, vmin=0, vmax=3)
-            cbar = plt.colorbar(im, ticks=[0, 1, 2, 3])
+            im = plt.imshow(risk, cmap=cmap, vmin=0, vmax=4)
+            cbar = plt.colorbar(im, ticks=[0, 1, 2, 3, 4])
             cbar.ax.set_yticklabels(labels)
             plt.title("Flood Risk Zones")
             plt.axis("off")
             plt.tight_layout()
-            plt.savefig("rag/flood_risk_map.png")
+            plt.savefig("rag/outputs/flood_risk_map.png")
             plt.close()
 
 if __name__ == "__main__":

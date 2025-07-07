@@ -1,47 +1,47 @@
 {
   "workflow": [
     {
-      "task": "flood-prone analysis for Chennai",
-      "action": "Download DEM",
-      "args": {
-        "tool": "gdal",
-        "input_file": "rag/uploads\\input_20250706_161721.tif",
-        "output_file": "goa_dem.tif"
-      }
-    },
-    {
-      "task": "flood-prone analysis for Chennai",
-      "action": "Download Goa city boundary",
+      "task": "flood-prone analysis for Sri Lanka",
+      "action": "Download country boundary",
       "args": {
         "tool": "osmnx",
-        "input_file": "rag/uploads\\input_20250706_161721.tif",
-        "output_file": "goa_boundary.geojson"
+        "input_file": "rag/uploads\\input_20250707_001230.tif",
+        "output_file": "sri_lanka_boundary.geojson"
       }
     },
     {
-      "task": "flood-prone analysis for Chennai",
+      "task": "flood-prone analysis for Sri Lanka",
       "action": "Clip DEM using boundary",
       "args": {
         "tool": "rasterio",
-        "input_file": "rag/uploads\\input_20250706_161721.tif",
-        "output_file": "clipped_goa.tif"
+        "input_file": "rag/uploads\\input_20250707_001230.tif",
+        "output_file": "clipped_sri_lanka.tif"
       }
     },
     {
-      "task": "flood-prone analysis for Chennai",
+      "task": "flood-prone analysis for Sri Lanka",
+      "action": "Fill depressions",
+      "args": {
+        "tool": "whiteboxtools",
+        "input_file": "rag/uploads\\input_20250707_001230.tif",
+        "output_file": "filled_dem.tif"
+      }
+    },
+    {
+      "task": "flood-prone analysis for Sri Lanka",
       "action": "Calculate flow accumulation",
       "args": {
         "tool": "whiteboxtools",
-        "input_file": "rag/uploads\\input_20250706_161721.tif",
+        "input_file": "rag/uploads\\input_20250707_001230.tif",
         "output_file": "flow_accum.tif"
       }
     },
     {
-      "task": "flood-prone analysis for Chennai",
+      "task": "flood-prone analysis for Sri Lanka",
       "action": "Classify flood risk",
       "args": {
         "tool": "rasterio",
-        "input_file": "rag/uploads\\input_20250706_161721.tif",
+        "input_file": "rag/uploads\\input_20250707_001230.tif",
         "output_file": "flood_risk_levels.tif"
       }
     }

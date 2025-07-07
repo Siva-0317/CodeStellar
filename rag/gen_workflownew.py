@@ -5,7 +5,7 @@ import regex as re
 import sys
 from llama_cpp import Llama
 
-model_path = "D:/AI/lmstudio-community/Llama-3.2-3B-Instruct-GGUF/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
+model_path = "D:/AI/lmstudio-community/DeepSeek-R1-0528-Qwen3-8B-GGUF/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf"
 output_path = "rag/workflows/sample_workflow.json"
 
 def get_workflow_from_prompt(prompt: str):
