@@ -10,7 +10,7 @@ output_path = "rag/workflows/sample_workflow.json"
 # Initialize OpenRouter client
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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"  # Replace with your actual key
+    api_key="yourapikey"  # Replace with your actual key
 )
 
 def get_workflow_from_prompt(prompt: str):
