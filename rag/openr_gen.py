@@ -1,17 +1,19 @@
-# rag/generate_workflow.py using OpenRouter
+# rag/openr_gen.py using OpenRouter via direct HTTP request
 import json
 import os
 import regex as re
 import sys
-from openai import OpenAI
+import requests
 
 output_path = "rag/workflows/sample_workflow.json"
 
-# Initialize OpenRouter client
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="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"  # Replace with your actual key
-)
+# OpenRouter API details
+API_KEY = "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"
+url = "https://openrouter.ai/api/v1/chat/completions"
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json"
+}
 
 def get_workflow_from_prompt(prompt: str):
     system_prompt = """
@@ -25,7 +27,7 @@ Schema:
       "task": string,
       "action": string,
       "args": {
-        "tool": one of [whiteboxtools, qgis, gdal, rasterio, osmnx],
+        "tool": one of [whiteboxtools, qgis, gdal, rasterio, osmnx, ndvi],
         "input_file": string,
         "output_file": string
       }
@@ -109,20 +111,56 @@ Generate site suitability map from DEM for Chennai:
     }
   ]
 }
+
+Generate land cover classification from Sentinel-2 bands for Chennai:
+{
+  "workflow": [
+    {
+      "task": "landcover",
+      "action": "Stack Sentinel bands B02, B03, B04, B08",
+      "args": {
+        "tool": "rasterio",
+        "input_file": "uploads/B02,B03,B04,B08.jp2",
+        "output_file": "sentinel_stacked.tif"
+      }
+    },
+    {
+      "task": "landcover",
+      "action": "Compute NDVI",
+      "args": {
+        "tool": "rasterio",
+        "input_file": "sentinel_stacked.tif",
+        "output_file": "ndvi.tif"
+      }
+    },
+    {
+      "task": "landcover",
+      "action": "Classify LULC from NDVI",
+      "args": {
+        "tool": "rasterio",
+        "input_file": "ndvi.tif",
+        "output_file": "lulc_class.tif"
+      }
+    }
+  ]
+}
 """
 
-    messages = [
-        {"role": "system", "content": system_prompt.strip()},
-        {"role": "user", "content": prompt.strip()}
-    ]
+    data = {
+        "model": "deepseek/deepseek-chat:free",
+        "messages": [
+            {"role": "system", "content": system_prompt.strip()},
+            {"role": "user", "content": prompt.strip()}
+        ],
+        "temperature": 0.7
+    }
 
-    response = client.chat.completions.create(
-        model="deepseek/deepseek-chat:free",
-        messages=messages,
-        temperature=0.7,
-    )
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code != 200:
+        raise RuntimeError(f"❌ Request failed: {response.status_code} - {response.text}")
 
-    text = response.choices[0].message.content
+    result = response.json()
+    text = result["choices"][0]["message"]["content"]
 
     json_blocks = re.findall(r"\{(?:[^{}]|(?R))*\}", text, re.DOTALL)
     snippet = json_blocks[0] if json_blocks else ""
