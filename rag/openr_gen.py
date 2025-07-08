@@ -14,7 +14,6 @@ headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
-
 def get_workflow_from_prompt(prompt: str):
     system_prompt = """
 You are a GIS workflow generator. Given a user task, generate a concrete JSON workflow using the following schema.
