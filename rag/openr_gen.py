@@ -6,6 +6,7 @@ import sys
 import requests
 
 output_path = "rag/workflows/sample_workflow.json"
+cot_path = "rag/llm_response.txt"
 
 # OpenRouter API details
 API_KEY = "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"
@@ -14,10 +15,11 @@ headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json"
 }
+
 def get_workflow_from_prompt(prompt: str):
     system_prompt = """
 You are a GIS workflow generator. Given a user task, generate a concrete JSON workflow using the following schema.
-Return ONLY the JSON object.
+Return the JSON object followed by your step-by-step reasoning (Chain-of-Thought) explaining how you constructed the workflow.
 
 Schema:
 {
@@ -36,7 +38,7 @@ Schema:
 
 Examples:
 
-Generate flood prone zones from DEM:
+Generate flood prone zones from DEM for Chennai:
 {
   "workflow": [
     {
@@ -143,8 +145,13 @@ Generate land cover classification from Sentinel-2 bands for Chennai:
     }
   ]
 }
-"""
 
+After the JSON, add reasoning like:
+Reasoning:
+1. Since the task involves DEM, we first fill depressions.
+2. Then calculate flow accumulation...
+3. Classify using raster thresholds, etc.
+"""
     data = {
         "model": "deepseek/deepseek-chat:free",
         "messages": [
@@ -159,22 +166,29 @@ Generate land cover classification from Sentinel-2 bands for Chennai:
         raise RuntimeError(f"❌ Request failed: {response.status_code} - {response.text}")
 
     result = response.json()
-    text = result["choices"][0]["message"]["content"]
+    full_response = result["choices"][0]["message"]["content"]
 
-    json_blocks = re.findall(r"\{(?:[^{}]|(?R))*\}", text, re.DOTALL)
+    # Save full CoT reasoning
+    with open(cot_path, "w", encoding="utf-8") as f:
+        f.write(full_response.strip())
+
+    # Extract JSON from response
+    json_blocks = re.findall(r"\{(?:[^{}]|(?R))*\}", full_response, re.DOTALL)
     snippet = json_blocks[0] if json_blocks else ""
 
     if not snippet.strip():
         raise ValueError("No JSON object found.")
 
-    data = json.loads(snippet)
+    workflow_data = json.loads(snippet)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w") as f:
-        json.dump(data, f, indent=2)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(workflow_data, f, indent=2)
 
     print("✅ Workflow saved.")
+    print(f"📘 Reasoning saved to: {cot_path}")
 
-# 🟨 Use sys.argv for prompt (for Streamlit compatibility)
+# Entry point
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         prompt_text = " ".join(sys.argv[1:])

@@ -9,8 +9,8 @@ import sys
 UPLOAD_FOLDER = "rag/uploads"
 WORKFLOW_FOLDER = "rag/workflows"
 OUTPUT_FOLDER = "rag/outputs"
+COT_FILE = "rag/llm_response.txt"
 
-# Ensure required folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(WORKFLOW_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -18,39 +18,63 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 st.set_page_config(page_title="Geospatial Reasoning Assistant", layout="wide")
 st.title("🌍 Geospatial Reasoning Assistant")
 
+# Initialize session state
+if "prompt_history" not in st.session_state:
+    st.session_state.prompt_history = []
+
 # --- Mode Selector ---
-mode = st.radio("Choose Workflow Mode:", ["Flood-Prone Zone Identification", "Site Suitability Analysis", "Land Cover Classification (LULC)"])
+mode = st.radio("Choose Workflow Mode:", [
+    "Flood-Prone Zone Identification",
+    "Site Suitability Analysis",
+    "Land Use / Land Cover (LULC) Classification"
+])
 
 # --- Prompt Input ---
 st.header("Step 1: Describe your GIS task")
-def_prompt = {
+def_prompt_map = {
     "Flood-Prone Zone Identification": "Find flood-prone zones in Chennai",
     "Site Suitability Analysis": "Find suitable sites for building in Vellore",
-    "Land Cover Classification (LULC)": "Classify land cover from Sentinel-2 bands in Chennai"
+    "Land Use / Land Cover (LULC) Classification": "Classify land cover from Sentinel 2 for Coimbatore"
 }
-prompt = st.text_area("Enter task prompt:", placeholder=f"e.g., {def_prompt[mode]}")
+prompt = st.text_area("Enter task prompt:", placeholder=f"e.g., {def_prompt_map[mode]}")
 
 workflow_script = "rag/openr_gen.py"
 executor_script = {
     "Flood-Prone Zone Identification": "rag/flood_executor.py",
     "Site Suitability Analysis": "rag/site_executor.py",
-    "Land Cover Classification (LULC)": "rag/lulc_executor.py"
+    "Land Use / Land Cover (LULC) Classification": "rag/lulc_executor.py"
 }[mode]
 
+# --- Generate Workflow JSON ---
 if st.button("Generate Workflow JSON using LLM"):
     with st.spinner("🔧 Generating workflow from LLM..."):
         result = subprocess.run([sys.executable, workflow_script, prompt], capture_output=True, text=True)
 
         if result.returncode == 0:
             st.success("✅ Workflow JSON generated.")
+            st.session_state.prompt_history.append(prompt)
+
             with open("rag/workflows/sample_workflow.json") as f:
                 workflow = json.load(f)
             st.json(workflow)
+
+            if os.path.exists(COT_FILE):
+                with open(COT_FILE, "r", encoding="utf-8") as f:
+                    cot_text = f.read()
+                st.header("🧠 Chain-of-Thought Reasoning")
+                st.code(cot_text, language="markdown")
+
         else:
             st.error("❌ Workflow generation failed.")
             st.text(result.stderr)
 
-# --- GeoJSON Location Input ---
+# --- Prompt History Sidebar ---
+if st.session_state.prompt_history:
+    st.sidebar.header("📜 Prompt History")
+    for idx, p in enumerate(reversed(st.session_state.prompt_history), 1):
+        st.sidebar.markdown(f"**{idx}.** {p}")
+
+# --- Location Input for DEM Tasks ---
 if mode in ["Site Suitability Analysis", "Flood-Prone Zone Identification"]:
     st.header("Step 2: Enter Location for GeoJSON Boundary")
     location_input = st.text_input("Enter location name (e.g., Vellore or Goa):")
@@ -67,59 +91,56 @@ if mode in ["Site Suitability Analysis", "Flood-Prone Zone Identification"]:
             json.dump(workflow, f, indent=2)
         st.success(f"📍 Location updated in workflow: {location_input}")
 
-# --- Upload File(s) ---
-if mode == "Land Cover Classification (LULC)":
-    st.header("Step 3: Upload Sentinel-2 JP2 Bands")
-    uploaded_files = st.file_uploader("Upload 4 Sentinel-2 bands (B02, B03, B04, B08)", type=["jp2"], accept_multiple_files=True)
+# --- Upload JP2 for LULC ---
+if mode == "Land Use / Land Cover (LULC) Classification":
+    st.header("Step 3: Upload Sentinel-2 Bands (JP2 format)")
+    uploaded_files = st.file_uploader("Upload bands B02, B03, B04, B08", type=["jp2"], accept_multiple_files=True)
 
-    if uploaded_files and len(uploaded_files) == 4:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        band_map = {}
-        for file in uploaded_files:
-            fname = file.name
-            if "B02" in fname:
-                band_map["B02"] = fname
-            elif "B03" in fname:
-                band_map["B03"] = fname
-            elif "B04" in fname:
-                band_map["B04"] = fname
-            elif "B08" in fname:
-                band_map["B08"] = fname
+    band_map = {"B02": None, "B03": None, "B04": None, "B08": None}
+    for file in uploaded_files:
+        for band in band_map:
+            if band in file.name:
+                save_path = os.path.join(UPLOAD_FOLDER, file.name)
+                with open(save_path, "wb") as f:
+                    f.write(file.read())
+                band_map[band] = save_path
 
-            save_path = os.path.join(UPLOAD_FOLDER, fname)
-            with open(save_path, "wb") as f:
-                f.write(file.read())
+    if all(band_map.values()):
+        st.success("✅ All required bands uploaded.")
+        if st.button("Run Workflow"):
+            with st.spinner("⏳ Executing Workflow..."):
+                result = subprocess.run([sys.executable, executor_script], capture_output=True, text=True)
+                if result.returncode == 0:
+                    st.success("✅ Workflow executed successfully!")
+                    st.text(result.stdout)
 
-        if len(band_map) == 4:
-            st.success("✅ All required bands uploaded.")
-            if st.button("Run Workflow"):
-                with st.spinner("⏳ Executing LULC Workflow..."):
-                    result = subprocess.run([sys.executable, executor_script], capture_output=True, text=True)
-                    if result.returncode == 0:
-                        st.success("✅ Workflow executed successfully!")
-                        st.text(result.stdout)
+                    st.header("🗺️ Output Map")
+                    map_img = os.path.join("rag", "outputs", "lulc_map.png")
+                    if os.path.exists(map_img):
+                        st.image(map_img, caption="LULC Classification", use_container_width=True)
+                        with open(map_img, "rb") as f:
+                            st.download_button("📥 Download Map Image", f, file_name="lulc_map.png")
 
-                        st.header("🗺️ LULC Output Map")
-                        lulc_img = os.path.join("rag", "outputs", "lulc_map.png")
-                        if os.path.exists(lulc_img):
-                            st.image(lulc_img, caption="Land Cover Map", use_container_width=True)
-                            with open(lulc_img, "rb") as f:
-                                st.download_button("📥 Download Map Image", f, file_name="lulc_map.png")
-                        else:
-                            st.warning("⚠️ LULC map not found.")
+                    st.header("📊 Output Raster Files")
+                    for file in os.listdir(OUTPUT_FOLDER):
+                        if file.endswith(".tif"):
+                            st.markdown(f"📄 {file}")
 
-                        st.header("📊 Output Raster Files")
-                        for file in os.listdir(OUTPUT_FOLDER):
-                            if file.endswith(".tif"):
-                                st.markdown(f"📄 {file}")
-                    else:
-                        st.error("❌ LULC Workflow execution failed.")
-                        st.text(result.stderr)
-        else:
-            st.warning("⚠️ Please upload all 4 required bands (B02, B03, B04, B08).")
+                    # Show COT Reasoning again after execution
+                    if os.path.exists(COT_FILE):
+                        with open(COT_FILE, "r", encoding="utf-8") as f:
+                            cot_text = f.read()
+                        st.header("🧠 Chain-of-Thought Reasoning")
+                        st.code(cot_text, language="markdown")
 
+                else:
+                    st.error("❌ Workflow execution failed.")
+                    st.text(result.stderr)
+    else:
+        st.warning("Please upload all required bands.")
+
+# --- Upload DEM for Flood/Suitability ---
 else:
-    # --- Upload TIF File for Flood/Site ---
     st.header("Step 3: Upload your DEM (.tif) file")
     tif_file = st.file_uploader("Upload a DEM GeoTIFF file", type=["tif", "tiff"])
 
@@ -130,6 +151,7 @@ else:
             f.write(tif_file.read())
         st.success(f"Uploaded: {uploaded_path}")
 
+        # Update workflow input path
         with open("rag/workflows/sample_workflow.json") as f:
             workflow = json.load(f)
         for step in workflow.get("workflow", []):
@@ -167,6 +189,13 @@ else:
                     with open("rag/workflows/sample_workflow.json") as f:
                         st.header("🧠 Executed JSON Workflow")
                         st.json(json.load(f))
+
+                    # Show COT Reasoning after execution
+                    if os.path.exists(COT_FILE):
+                        with open(COT_FILE, "r", encoding="utf-8") as f:
+                            cot_text = f.read()
+                        st.header("🧠 Chain-of-Thought Reasoning")
+                        st.code(cot_text, language="markdown")
                 else:
                     st.error("❌ Workflow execution failed.")
                     st.text(result.stderr)
