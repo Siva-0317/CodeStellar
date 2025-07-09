@@ -1,15 +1,16 @@
 # CodeStellar Geospatial Reasoning Assistant
 
-This project is an end-to-end **Geospatial Reasoning Assistant** powered by LLMs (DeepSeek, Llama, etc.) and Streamlit, designed for tasks like flood-prone zone identification, site suitability analysis, and land use/land cover (LULC) classification using satellite or DEM data.
+This project is an end-to-end **Geospatial Reasoning Assistant** powered by LLMs (DeepSeek, Llama, Gemma, etc.) and Streamlit, designed for tasks like flood-prone zone identification, site suitability analysis, and land use/land cover (LULC) classification using satellite or DEM data.
 
 ---
 
 ## 🚀 Features
 
-- **LLM-powered workflow generation**: Uses DeepSeek LLM (via [LM Studio](https://lmstudio.ai/)) or local GGUF models to generate GIS processing workflows from natural language prompts.
+- **LLM-powered workflow generation**: Uses DeepSeek LLM (via [LM Studio](https://lmstudio.ai/)), local GGUF models, or OpenRouter to generate GIS processing workflows from natural language prompts.
 - **Streamlit UI**: User-friendly web interface for prompt input, file upload, and workflow execution.
 - **Automated GIS processing**: Executes generated workflows for DEM and satellite data using Python geospatial libraries.
 - **Chain-of-Thought Reasoning**: Displays LLM's reasoning for transparency.
+- **Integrated Chatbot (Gemma 2B GGUF)**: Ask GIS, workflow, or platform questions in the sidebar and get instant answers from a local Gemma 2B model.
 
 ---
 
@@ -45,6 +46,18 @@ pip install -r requirements.txt
 - Place the model file in a directory (e.g., `D:/AI/lmstudio-community/DeepSeek-R1-0528-Qwen3-8B-GGUF/`).
 - Update the `model_path` in `rag/generate_workflow.py` if your path is different.
 
+### 4. **Download and Setup Gemma 2B GGUF Model for Chatbot**
+
+- Download the [Gemma 2B GGUF model](https://huggingface.co/models?search=gemma-2b) (e.g., `gemma-2-2b-it-Q4_K_M.gguf`).
+- Place it in `rag/models/` or update the `MODEL_PATH` in `rag/chatbot_response.py` to match your location.
+
+### 5. **Set Up OpenRouter API (Optional)**
+
+If you want to use OpenRouter for LLM inference, set your API in `rag/openr_gen.py`:
+```python
+API_KEY = "sk-or-...your-key..."
+```
+
 ---
 
 ## 🗺️ Main Components
@@ -54,6 +67,7 @@ pip install -r requirements.txt
 - Launches the web UI.
 - Lets you select workflow mode, enter prompts, upload files, and run workflows.
 - Displays generated workflow JSON and LLM reasoning.
+- **Sidebar Chatbot:** Ask questions about GIS, workflows, or platform usage and get answers from the local Gemma 2B model.
 
 **Run with:**
 ```sh
@@ -87,6 +101,14 @@ These scripts read the generated workflow JSON and process your uploaded data ac
 
 ---
 
+### 4. **Chatbot (`rag/chatbot_response.py`)**
+
+- Powered by the local Gemma 2B GGUF model.
+- Handles all sidebar chat queries in the Streamlit app.
+- Answers questions about GIS, workflow usage, troubleshooting, and platform features.
+
+---
+
 ## 📂 Folder Structure
 
 ```
@@ -97,6 +119,9 @@ rag/
   flood_executor.py      # Flood-prone workflow executor
   site_executor.py       # Site suitability executor
   lulc_executor.py       # LULC executor
+  chatbot_response.py    # Chatbot using Gemma 2B GGUF
+  models/
+    gemma-2-2b-it-Q4_K_M.gguf # (Place Gemma model here)
   workflows/
     sample_workflow.json # Generated workflow JSON
   uploads/               # Uploaded DEM/JP2 files
@@ -120,6 +145,8 @@ rag/
 
 5. **Run the workflow** and view/download results.
 
+6. **Ask questions** in the sidebar chatbot for instant help.
+
 ---
 
 ## ⚙️ Notes
@@ -128,6 +155,7 @@ rag/
 - For large files, use [Git LFS](https://git-lfs.github.com/).
 - Update paths in scripts if your directory structure is different.
 - For OpenRouter, you need an API key.
+- For the chatbot, ensure the Gemma 2B GGUF model is downloaded and the path in `chatbot_response.py` is correct.
 
 ---
 
