@@ -4,6 +4,7 @@ import subprocess
 import json
 from datetime import datetime
 import sys
+from llama_cpp import Llama
 
 # Set folders
 UPLOAD_FOLDER = "rag/uploads"
@@ -21,6 +22,8 @@ st.title("🌍 Geospatial Reasoning Assistant")
 # Initialize session state
 if "prompt_history" not in st.session_state:
     st.session_state.prompt_history = []
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 # --- Mode Selector ---
 mode = st.radio("Choose Workflow Mode:", [
@@ -74,6 +77,27 @@ if st.session_state.prompt_history:
     for idx, p in enumerate(reversed(st.session_state.prompt_history), 1):
         st.sidebar.markdown(f"**{idx}.** {p}")
 
+# --- Chatbot Sidebar Assistant ---
+st.sidebar.title("💬 Assistant Chatbot")
+user_input = st.sidebar.text_input("Ask me anything:")
+
+# Load GGUF model
+@st.cache_resource
+def load_llm():
+    return Llama(model_path="models/gemma-2b.gguf", n_ctx=2048, n_threads=6, n_gpu_layers=20)
+
+llm = load_llm()
+
+if user_input:
+    context = "\n".join([f"User: {q}\nAI: {a}" for q, a in st.session_state.chat_history])
+    full_prompt = f"You are a helpful assistant for a GIS app.\n{context}\nUser: {user_input}\nAI:"
+    response = llm(full_prompt, max_tokens=256, stop=["User:"])['choices'][0]['text'].strip()
+    st.session_state.chat_history.append((user_input, response))
+
+for q, a in reversed(st.session_state.chat_history):
+    st.sidebar.markdown(f"**You:** {q}")
+    st.sidebar.markdown(f"**Assistant:** {a}")
+
 # --- Location Input for DEM Tasks ---
 if mode in ["Site Suitability Analysis", "Flood-Prone Zone Identification"]:
     st.header("Step 2: Enter Location for GeoJSON Boundary")
@@ -126,13 +150,11 @@ if mode == "Land Use / Land Cover (LULC) Classification":
                         if file.endswith(".tif"):
                             st.markdown(f"📄 {file}")
 
-                    # Show COT Reasoning again after execution
                     if os.path.exists(COT_FILE):
                         with open(COT_FILE, "r", encoding="utf-8") as f:
                             cot_text = f.read()
                         st.header("🧠 Chain-of-Thought Reasoning")
                         st.code(cot_text, language="markdown")
-
                 else:
                     st.error("❌ Workflow execution failed.")
                     st.text(result.stderr)
@@ -151,7 +173,6 @@ else:
             f.write(tif_file.read())
         st.success(f"Uploaded: {uploaded_path}")
 
-        # Update workflow input path
         with open("rag/workflows/sample_workflow.json") as f:
             workflow = json.load(f)
         for step in workflow.get("workflow", []):
@@ -190,7 +211,6 @@ else:
                         st.header("🧠 Executed JSON Workflow")
                         st.json(json.load(f))
 
-                    # Show COT Reasoning after execution
                     if os.path.exists(COT_FILE):
                         with open(COT_FILE, "r", encoding="utf-8") as f:
                             cot_text = f.read()
