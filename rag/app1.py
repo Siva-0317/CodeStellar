@@ -41,7 +41,7 @@ def_prompt_map = {
 }
 prompt = st.text_area("Enter task prompt:", placeholder=f"e.g., {def_prompt_map[mode]}")
 
-workflow_script = "rag/openr_gen.py"
+workflow_script = "rag/generate_workflow.py"
 executor_script = {
     "Flood-Prone Zone Identification": "rag/flood_executor.py",
     "Site Suitability Analysis": "rag/site_executor.py",
