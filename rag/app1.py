@@ -81,34 +81,35 @@ if st.session_state.prompt_history:
 st.sidebar.title("💬 Assistant Chatbot")
 user_input = st.sidebar.text_input("Ask me anything:")
 
-# Load GGUF model
-@st.cache_resource
-def load_llm():
-    return Llama(model_path="models/gemma-2-2b-it-Q4_K_M.gguf", n_ctx=2048, n_threads=6, n_gpu_layers=20)
-
-llm = load_llm()
-
-SYSTEM_PROMPT = """
-You are an expert assistant for a geospatial reasoning application. This app allows users to:
-- Generate GIS workflows from natural language prompts using LLMs.
-- Perform flood-prone zone identification, site suitability analysis, and land use/land cover (LULC) classification.
-- Upload DEM (.tif) files for terrain-based workflows and Sentinel-2 bands (B02, B03, B04, B08 in .jp2) for LULC analysis.
-- Use tools like WhiteboxTools, Rasterio, OSMnx, and GDAL to process raster and vector geospatial data.
-- Automatically create JSON-based workflows, execute them, and visualize results like classified maps and output GeoTIFFs.
-- View step-by-step reasoning (Chain-of-Thought) for each workflow and download maps or raster results.
-Your job is to assist users with questions about how to use the platform, troubleshoot file uploads, understand outputs, and clarify GIS-related terms.
-"""
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 if user_input:
+    # Prepare conversation context
     context = "\n".join([f"User: {q}\nAI: {a}" for q, a in st.session_state.chat_history])
-    full_prompt = f"{SYSTEM_PROMPT.strip()}\n\n{context}\nUser: {user_input}\nAI:"
-    response = llm(full_prompt, max_tokens=256, stop=["User:"])['choices'][0]['text'].strip()
-    st.session_state.chat_history.append((user_input, response))
+    combined_prompt = f"{context}\nUser: {user_input}"
 
+    # Call external chatbot script
+    chatbot_script = "rag/chatbot_response.py"
+    result = subprocess.run(
+        [sys.executable, chatbot_script, combined_prompt],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode == 0:
+        response = result.stdout.strip()
+        st.session_state.chat_history.append((user_input, response))
+    else:
+        response = "⚠️ Failed to generate response."
+        st.error(result.stderr)
+
+# Display previous messages
 for q, a in reversed(st.session_state.chat_history):
     st.sidebar.markdown(f"**You:** {q}")
     st.sidebar.markdown(f"**Assistant:** {a}")
-    
+
+
 # --- Location Input for DEM Tasks ---
 if mode in ["Site Suitability Analysis", "Flood-Prone Zone Identification"]:
     st.header("Step 2: Enter Location for GeoJSON Boundary")
