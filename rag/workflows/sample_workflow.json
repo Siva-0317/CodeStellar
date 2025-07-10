@@ -1,39 +1,30 @@
 {
   "workflow": [
     {
-      "task": "landcover",
-      "action": "Download Sentinel-2 imagery for Gujarat",
+      "task": "site suitability for Kerala",
+      "action": "Fill depressions",
       "args": {
-        "tool": "osmnx",
-        "input_file": "Gujarat",
-        "output_file": "gujarat_sentinel.tif"
+        "tool": "whiteboxtools",
+        "input_file": "rag/uploads\\input_20250709_201832.tif",
+        "output_file": "filled_dem.tif"
       }
     },
     {
-      "task": "landcover",
-      "action": "Stack Sentinel bands B02, B03, B04, B08",
+      "task": "site suitability for Kerala",
+      "action": "Calculate flow accumulation",
       "args": {
-        "tool": "rasterio",
-        "input_file": "gujarat_sentinel.tif",
-        "output_file": "sentinel_stacked.tif"
+        "tool": "whiteboxtools",
+        "input_file": "rag/uploads\\input_20250709_201832.tif",
+        "output_file": "flow_accum.tif"
       }
     },
     {
-      "task": "landcover",
-      "action": "Compute NDVI",
+      "task": "site suitability for Kerala",
+      "action": "Classify flood risk",
       "args": {
         "tool": "rasterio",
-        "input_file": "sentinel_stacked.tif",
-        "output_file": "ndvi.tif"
-      }
-    },
-    {
-      "task": "landcover",
-      "action": "Classify LULC from NDVI",
-      "args": {
-        "tool": "rasterio",
-        "input_file": "ndvi.tif",
-        "output_file": "lulc_class.tif"
+        "input_file": "rag/uploads\\input_20250709_201832.tif",
+        "output_file": "flood_risk_levels.tif"
       }
     }
   ]
